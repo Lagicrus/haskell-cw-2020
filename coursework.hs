@@ -8,7 +8,7 @@ import Data.List
 import Text.Printf
 import Data.Map (fromListWith, toList)
 import Data.Text (pack, splitOn, unpack)
-import Data.List (intercalate)
+import Data.List (intercalate, genericLength)
 
 --
 -- Types (define Place type here)
@@ -25,7 +25,7 @@ testData :: [Place]
 testData = [
     Place "London"       51.5  (-0.1)   [0, 0, 5, 8, 8, 0, 0],
     Place "Cardiff"      51.5  (-3.2)   [12, 8, 15, 0, 0, 0, 2],
-    Place "Norwich"      52.6  (1.3)   [0, 6, 5, 0, 0, 0, 3],
+    Place "Norwich"      52.6  (1.3)    [0, 6, 5, 0, 0, 0, 3],
     Place "Birmingham"   52.5  (-1.9)   [0, 2, 10, 7, 8, 2, 2],
     Place "Liverpool"    53.4  (-3.0)   [8, 16, 20, 3, 4, 9, 2],
     Place "Hull"         53.8  (-0.3)   [0, 6, 5, 0, 0, 0, 4],
@@ -46,7 +46,9 @@ testData = [
 placesToString :: [Place] -> String
 placesToString [] = []
 -- placesToString ((Place placeName degreesN degreesE dailyFigures):xs) = printf "Place Name: %s\nDegrees N: %s\nDegrees E: %s\nDaily Figures: %s\n" placeName degreesN degreesE dailyFigures ++ placesToString xs
+placesToString ((Place placeName degreesN degreesE dailyFigures):xs) = placeName ++ " " ++ show degreesN ++ " " ++ show degreesE ++ " " ++ show dailyFigures ++ "\n" ++ placesToString xs
 -- placesToString [] = map printf "Place Name: %s\nDegrees N: %s\nDegrees E: %s\nDaily Figures: %s\n" placeName degreesN degreesE dailyFigures
+
 
 rS :: String -> Int -> String
 rS a b= (concat(replicate b a))
@@ -57,12 +59,31 @@ convert placeText = convertPass (map unpack (splitOn (pack(" ")) (pack(placeText
 convertPass :: [String] -> Place
 convertPass [a,b,c,d] = (Place a (read b :: Float ) (read c :: Float) (read d :: [Integer]))
 
+-- Demo 1
+
 getAllPlaceNames :: [Place] -> String
 getAllPlaceNames placeList = intercalate " " [placeName | (Place placeName _ _ _) <- placeList]
 
+-- Demo 2
 
-getPlaceFromPlaces:: [Place] -> [String] -> [Place]
-getPlaceFromPlaces places inputPlace place = (filter (\(Album place _ _ _) -> place == inputPlace) places)!!0
+average xs = realToFrac (sum xs) / genericLength xs
+
+getPlaceFromPlaces :: [Place] -> String -> Place
+getPlaceFromPlaces places inputPlace = (filter (\(Place placeName _ _ _) -> placeName == inputPlace) places)!!0
+
+getRainfallOfPlace :: Place -> [Integer]
+getRainfallOfPlace (Place placeName degreesN degreesE dailyFigures) = dailyFigures
+
+getAverageRainfallForPlace :: [Place] -> String -> Float
+getAverageRainfallForPlace places inputPlace = average (getRainfallOfPlace(getPlaceFromPlaces places inputPlace))
+
+-- Demo 3
+
+getPlaceNameAndDailyFromPlace :: Place -> (String, [Integer])
+getPlaceNameAndDailyFromPlace (Place placeName degreesN degreesE dailyFigures) = (placeName, dailyFigures)
+ 
+getAllPlacesAndRainFall :: [Place] -> [String]
+getAllPlacesAndRainFall places = [placeName | (Place placeName _ _ dailyFigures) <- places]
 
 --
 --  Demo
@@ -71,8 +92,8 @@ getPlaceFromPlaces places inputPlace place = (filter (\(Album place _ _ _) -> pl
 demo :: Int -> IO ()
 -- demo 1 = putStrLn (placesToString testData)
 demo 1 = putStrLn (getAllPlaceNames testData)
--- demo 2 = -- display, to two decimal places, the average rainfall in Cardiff
--- demo 3 = putStrLn (placesToString testData)
+demo 2 = printf "%f" (getAverageRainfallForPlace testData "London")
+demo 3 = print (getAllPlacesAndRainFall testData)
 -- demo 4 = -- display the names of all places that were dry two days ago
 -- demo 5 = -- update the data with most recent rainfall 
 --          [0,8,0,0,5,0,0,3,4,2,0,8,0,0] (and remove oldest rainfall figures)
@@ -125,7 +146,7 @@ userInterface placeData = do
   putStrLn (rS "*" 15)
   putStrLn ""
   putStrLn "1. - Return a list of the names of all the places"
-  putStrLn "2. - Top 10 Albums in descending order"
+  putStrLn "2. - Return Average Rainfall for a location"
   putStrLn "3. - Give all Albums released between 2 given years (inclusive)"
   putStrLn "4. - Give all Albums that start with a given prefix"
   putStrLn "5. - Give the total sales of a given artist"
@@ -141,8 +162,8 @@ userInterface placeData = do
   if input `elem` map (show) [1..9]
     then case input of
       "1" -> putStrLn (getAllPlaceNames testData)
-    --   "2" -> putStrLn (placesToString (top10 placeData))
-    --   "3" -> putStrLn (placesToString (filterReleaseYear 2000 2008 placeData))
+      "2" -> printf "%v" (getAverageRainfallForPlace testData "London")
+      "3" -> print (getAllPlacesAndRainFall testData)
     --   "4" -> putStrLn (placesToString (albumStartsWithFilter "Th" placeData))
     --   "5" -> putStrLn (show (sum(totalSales "Queen" placeData)))
     --   "6" -> putStrLn (occuranceToString(occurance_counter (albumReduction(placeData)) 50))
@@ -159,20 +180,3 @@ main = do
     ls <- fmap lines (readFile "places.txt")
     print ls
     userInterface (map convert ls)
-
--- main :: IO ()
--- main = do
---     putStrLn("========================================================")
---     putStrLn("Rainfall places")
---     loadedFile <- readFile "places.txt"
---     let places convertToPlace (lines loadedFile))
---     putStrLn("\nSuccesfully loaded "++ show(length places) ++" albums!")
---     putStrLn("========================================================\n")
---     userInterface()
-    
-    
--- convertToPlace :: [String] -> Place
--- convertToPlace [title,artist,year,sales] = (Place placeName degreesN degreesE (read dailyFigures :: Int))
-
-
--- ((Place placeName degreesN degreesE dailyFigures):xs)
