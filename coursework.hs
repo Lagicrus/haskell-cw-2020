@@ -89,7 +89,7 @@ getAllPlacesAndRainFall :: [Place] -> [(String,[Integer])]
 getAllPlacesAndRainFall places = [(placeName, dailyFigures) | (Place placeName _ _ dailyFigures) <- places]
 
 stringListIntegerToString :: (String, [Integer]) -> String
-stringListIntegerToString (placeName, dailyFigures) = placeName ++ "\t\t" ++ intercalate ", " (listIntToListString dailyFigures)
+stringListIntegerToString (placeName, dailyFigures) = placeName ++ (rS " " (20-(length placeName)))++ intercalate ",   " (listIntToListString dailyFigures)
 
 --
 --  Demo
@@ -165,6 +165,7 @@ userInterface placeData = do
 
   putStr ("> ")
   input <- getLine
+  putStr "\n"
   if input `elem` map (show) [1..9]
     then case input of
       "1" -> putStrLn (getAllPlaceNames testData)
