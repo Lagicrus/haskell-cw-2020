@@ -45,8 +45,7 @@ testData = [
 
 placesToString :: [Place] -> String
 placesToString [] = []
--- placesToString ((Place placeName degreesN degreesE dailyFigures):xs) = printf "Place Name: %s\nDegrees N: %s\nDegrees E: %s\nDaily Figures: %s\n" placeName degreesN degreesE dailyFigures ++ placesToString xs
-placesToString ((Place placeName degreesN degreesE dailyFigures):xs) = placeName ++ " " ++ show degreesN ++ " " ++ show degreesE ++ " " ++ show dailyFigures ++ "\n" ++ placesToString xs
+placesToString ((Place placeName degreesN degreesE dailyFigures):xs) = placeName ++ (rS " " (20-(length placeName))) ++ show degreesN ++ " " ++ show degreesE ++ " " ++ show dailyFigures ++ "\n" ++ placesToString xs
 -- placesToString [] = map printf "Place Name: %s\nDegrees N: %s\nDegrees E: %s\nDaily Figures: %s\n" placeName degreesN degreesE dailyFigures
 
 
@@ -96,6 +95,14 @@ stringListIntegerToString (placeName, dailyFigures) = placeName ++ (rS " " (20-(
 findPlacesDry2DaysAgo :: [Place] -> [Place]
 findPlacesDry2DaysAgo places = (filter (\(Place placeName _ _ dailyFigures) -> dailyFigures !! 1 == 0) places)
 
+-- Demo 5
+
+updatePlaceRain :: (Place, Integer) -> Place
+updatePlaceRain (place, newRain) = place {dailyFigures = init (newRain : (getRainfallOfPlace place))}
+
+updateAllPlaceRain :: [Place] -> [Integer] -> [Place]
+updateAllPlaceRain places newRainData = map updatePlaceRain (zip places newRainData)
+
 --
 --  Demo
 --
@@ -105,8 +112,7 @@ demo 1 = putStrLn (getAllPlaceNames testData)
 demo 2 = printf "%f" (getAverageRainfallForPlace testData "Cardiff")
 demo 3 = putStr (intercalate "\n" (map stringListIntegerToString (getAllPlacesAndRainFall testData)))
 demo 4 = print (getAllPlaceNames (findPlacesDry2DaysAgo testData))
--- demo 5 = -- update the data with most recent rainfall 
---          [0,8,0,0,5,0,0,3,4,2,0,8,0,0] (and remove oldest rainfall figures)
+demo 5 = putStrLn (placesToString (updateAllPlaceRain testData [0,8,0,0,5,0,0,3,4,2,0,8,0,0]))
 -- demo 6 = -- replace "Plymouth" with "Portsmouth" which has 
 --          location 50.8 (N), -1.1 (E) and rainfall 0, 0, 3, 2, 5, 2, 1
 -- demo 7 = -- display the name of the place closest to 50.9 (N), -1.3 (E) 
@@ -176,7 +182,7 @@ userInterface placeData = do
       "2" -> printf "%v" (getAverageRainfallForPlace testData "Cardiff")
       "3" -> putStr (intercalate "\n" (map stringListIntegerToString (getAllPlacesAndRainFall testData)))
       "4" -> putStrLn (getAllPlaceNames (findPlacesDry2DaysAgo testData))
-    --   "5" -> putStrLn (show (sum(totalSales "Queen" placeData)))
+      "5" -> putStrLn (placesToString (updateAllPlaceRain testData [0,8,0,0,5,0,0,3,4,2,0,8,0,0]))
     --   "6" -> putStrLn (occuranceToString(occurance_counter (albumReduction(placeData)) 50))
     --   "7" -> putStrLn (placesToString (updateLastEntry placeData (Album "Progress" "Take That" 2010 2700000)))
     --   "8" -> putStrLn (placesToString (updateCertainEntry placeData "21"))
