@@ -59,6 +59,9 @@ convert placeText = convertPass (map unpack (splitOn (pack(" ")) (pack(placeText
 convertPass :: [String] -> Place
 convertPass [a,b,c,d] = (Place a (read b :: Float ) (read c :: Float) (read d :: [Integer]))
 
+listIntToListString :: [Integer] -> [String]
+listIntToListString listI = map show listI
+
 -- Demo 1
 
 getAllPlaceNames :: [Place] -> String
@@ -82,8 +85,11 @@ getAverageRainfallForPlace places inputPlace = average (getRainfallOfPlace(getPl
 getPlaceNameAndDailyFromPlace :: Place -> (String, [Integer])
 getPlaceNameAndDailyFromPlace (Place placeName degreesN degreesE dailyFigures) = (placeName, dailyFigures)
  
-getAllPlacesAndRainFall :: [Place] -> [String]
-getAllPlacesAndRainFall places = [placeName | (Place placeName _ _ dailyFigures) <- places]
+getAllPlacesAndRainFall :: [Place] -> [(String,[Integer])]
+getAllPlacesAndRainFall places = [(placeName, dailyFigures) | (Place placeName _ _ dailyFigures) <- places]
+
+stringListIntegerToString :: (String, [Integer]) -> String
+stringListIntegerToString (placeName, dailyFigures) = placeName ++ "\t\t" ++ intercalate ", " (listIntToListString dailyFigures)
 
 --
 --  Demo
@@ -93,7 +99,7 @@ demo :: Int -> IO ()
 -- demo 1 = putStrLn (placesToString testData)
 demo 1 = putStrLn (getAllPlaceNames testData)
 demo 2 = printf "%f" (getAverageRainfallForPlace testData "London")
-demo 3 = print (getAllPlacesAndRainFall testData)
+demo 3 = putStr (intercalate "\n" (map stringListIntegerToString (getAllPlacesAndRainFall testData)))
 -- demo 4 = -- display the names of all places that were dry two days ago
 -- demo 5 = -- update the data with most recent rainfall 
 --          [0,8,0,0,5,0,0,3,4,2,0,8,0,0] (and remove oldest rainfall figures)
@@ -146,8 +152,8 @@ userInterface placeData = do
   putStrLn (rS "*" 15)
   putStrLn ""
   putStrLn "1. - Return a list of the names of all the places"
-  putStrLn "2. - Return Average Rainfall for a location"
-  putStrLn "3. - Give all Albums released between 2 given years (inclusive)"
+  putStrLn "2. - Return the average rainfall (as a float) for a place given its name"
+  putStrLn "3. - Return all place names and their 7-day rainfall figures as a single string which, when output using putStr, will display the data formatted neatly into eight columns"
   putStrLn "4. - Give all Albums that start with a given prefix"
   putStrLn "5. - Give the total sales of a given artist"
   putStrLn "6. - Give a list of artist names to number of albums in top 50"
@@ -163,7 +169,7 @@ userInterface placeData = do
     then case input of
       "1" -> putStrLn (getAllPlaceNames testData)
       "2" -> printf "%v" (getAverageRainfallForPlace testData "London")
-      "3" -> print (getAllPlacesAndRainFall testData)
+      "3" -> putStr (intercalate "\n" (map stringListIntegerToString (getAllPlacesAndRainFall testData)))
     --   "4" -> putStrLn (placesToString (albumStartsWithFilter "Th" placeData))
     --   "5" -> putStrLn (show (sum(totalSales "Queen" placeData)))
     --   "6" -> putStrLn (occuranceToString(occurance_counter (albumReduction(placeData)) 50))
