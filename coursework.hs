@@ -48,84 +48,124 @@ testData = [
 --  Your functional code goes here
 --
 
+-- Convert a list of Places to a readable multiline string
 placesToString :: [Place] -> String
 placesToString [] = []
 placesToString ((Place placeName degreesN degreesE dailyFigures):xs) = placeName ++ (rS " " (20-(length placeName))) ++ show degreesN ++ " " ++ show degreesE ++ " " ++ show dailyFigures ++ "\n" ++ placesToString xs
--- placesToString [] = map printf "Place Name: %s\nDegrees N: %s\nDegrees E: %s\nDaily Figures: %s\n" placeName degreesN degreesE dailyFigures
 
-
+-- Duplicate a given string X amount of times
 rS :: String -> Int -> String
 rS a b= (concat(replicate b a))
 
+-- Convert a string of place data (from places.txt) into Place data type by splitting it on space and passing it down
 convert :: String -> Place
 convert placeText = convertPass (map unpack (splitOn (pack(" ")) (pack(placeText))))
 
+-- Convert a list of strings from the convert function, into a data type Place
 convertPass :: [String] -> Place
 convertPass [a,b,c,d] = (Place a (read b :: Float ) (read c :: Float) (read d :: [Integer]))
 
+-- Convert a list of integers into a list of strings
 listIntToListString :: [Integer] -> [String]
 listIntToListString listI = map show listI
 
 -- Demo 1
 
+-- join a list of all place names together by using intercalate to join the list on space
 getAllPlaceNames :: [Place] -> String
 getAllPlaceNames placeList = intercalate " " [placeName | (Place placeName _ _ _) <- placeList]
 
 -- Demo 2
 
+-- Give the average of a list of numeric data
 average xs = realToFrac (sum xs) / genericLength xs
 
+-- Find a Place by string input to filter and find the place name
 getPlaceFromPlaces :: [Place] -> String -> Place
 getPlaceFromPlaces places inputPlace = (filter (\(Place placeName _ _ _) -> placeName == inputPlace) places)!!0
 
+-- Get the dailyFigures for the weather of a Place
 getRainfallOfPlace :: Place -> [Integer]
 getRainfallOfPlace (Place placeName degreesN degreesE dailyFigures) = dailyFigures
 
+-- Get the average rainfall of a Place given a search term
 getAverageRainfallForPlace :: [Place] -> String -> Float
 getAverageRainfallForPlace places inputPlace = average (getRainfallOfPlace(getPlaceFromPlaces places inputPlace))
 
 -- Demo 3
 
-getPlaceNameAndDailyFromPlace :: Place -> (String, [Integer])
-getPlaceNameAndDailyFromPlace (Place placeName degreesN degreesE dailyFigures) = (placeName, dailyFigures)
- 
+-- Fetch all place names and daily figures for a list of Places
 getAllPlacesAndRainFall :: [Place] -> [(String,[Integer])]
 getAllPlacesAndRainFall places = [(placeName, dailyFigures) | (Place placeName _ _ dailyFigures) <- places]
 
+-- take in a grouped search term and weather data and return a joined list with dynamic spacing
 stringListIntegerToString :: (String, [Integer]) -> String
 stringListIntegerToString (placeName, dailyFigures) = placeName ++ (rS " " (20-(length placeName)))++ intercalate ",   " (listIntToListString dailyFigures)
 
 -- Demo 4
 
+-- Given a list of Place filter out all Place's that were dry on their second day
 findPlacesDry2DaysAgo :: [Place] -> [Place]
 findPlacesDry2DaysAgo places = (filter (\(Place placeName _ _ dailyFigures) -> dailyFigures !! 1 == 0) places)
 
 -- Demo 5
 
+-- Take in a grouped Place and new rain data
+-- Fetch rainfall of Place
+-- Append new data at the front of the list
+-- Remove last data in list
+-- set it to place parameter and return it
 updatePlaceRain :: (Place, Integer) -> Place
 updatePlaceRain (place, newRain) = place {dailyFigures = init (newRain : (getRainfallOfPlace place))}
 
+-- Take in a list of Places and a list of new weather data
+-- Run it through a zip to join the lists into more managable data
+-- Then map it through the above function to update the data within
 updateAllPlaceRain :: [Place] -> [Integer] -> [Place]
 updateAllPlaceRain places newRainData = map updatePlaceRain (zip places newRainData)
 
 -- Demo 6
 
+-- Add a new Place given the correct params
 addPlace :: [Place] -> PlaceName -> DegreesN -> DegreesE -> DailyFigures -> [Place]
 addPlace places placeName degreesN degreesE dailyFigures = places ++ [Place placeName degreesN degreesE dailyFigures]
 
+-- Remove a Place from a list of Places by filter on place name
 removePlace :: [Place] -> String -> [Place]
 removePlace places searchName = (filter (\(Place placeName _ _ _) -> placeName /= searchName) places)
+
+-- Demo 7
+
+-- Get the X/Y (North East) of a Place
+getPlaceXY :: Place -> (Float, Float)
+getPlaceXY (Place placeName degreesN degreesE dailyFigures) = (degreesN, degreesE)
+
+-- Pythag on two co-ord pairs to find Float distance
+distanceBetween2Points :: (Float, Float) -> (Float, Float) -> Float
+distanceBetween2Points (aX, aY) (bX, bY) = sqrt ((aX - bX) ^ 2 + (aY - bY) ^ 2)
+
+minimumOfDataList :: [Place] -> (Float, Float) -> Float
+minimumOfDataList places (coX, coY) = do
+    let x = 0
+    ; let closest = distanceBetween2Points (getPlaceXY (places !! x)) (coX, coY)
+    ; closest
 
 --
 --  Demo
 --
 
 demo :: Int -> IO ()
+-- Demo 1, Print all place names from testData
 demo 1 = putStrLn (getAllPlaceNames testData)
-demo 2 = printf "%f\n" (getAverageRainfallForPlace testData "Cardiff")
+-- Demo 2, get the average rainfall for Cardfiff and format it to 2dp
+demo 2 = printf "%.2f\n" (getAverageRainfallForPlace testData "Cardiff")
+-- Demo 3, pretty print a table of place name to weather data via intercalate
 demo 3 = putStr ((intercalate "\n" (map stringListIntegerToString (getAllPlacesAndRainFall testData))) ++ "\n")
+-- Demo 4, get all places that were dry 2 days ago and print it
 demo 4 = putStrLn (getAllPlaceNames (findPlacesDry2DaysAgo testData))
+-- Demo 5, Update weather data with given set of ints
 demo 5 = putStrLn (placesToString (updateAllPlaceRain testData [0,8,0,0,5,0,0,3,4,2,0,8,0,0]))
+-- Demo 6, Add Portsmouth to place list and then remove Plymouth
 demo 6 = putStrLn (placesToString (removePlace (addPlace testData "Portsmouth" 50.8 (-1.1) [0,0,3,2,5,2,1]) "Plymouth"))
 -- demo 7 = -- display the name of the place closest to 50.9 (N), -1.3 (E) 
 --          that was dry yesterday
@@ -137,7 +177,6 @@ demo 6 = putStrLn (placesToString (removePlace (addPlace testData "Portsmouth" 5
 -- not work in WinGHCi on Windows, so use GHCi.)
 --
 
-{-
 type ScreenPosition = (Int,Int)
 
 -- Clears the screen
@@ -164,13 +203,12 @@ writeAt position text = do
 --
 -- Your user interface (and loading/saving) code goes here
 --
- 
--}
 
 userInterface :: [Place] -> IO ()
 userInterface placeData = do
   putStrLn (rS "*" 15)
   putStrLn "Place Data by UP857256"
+  putStrLn (getAllPlaceNames testData)
   putStrLn (rS "*" 15)
   putStrLn ""
   putStrLn "1. - Return a list of the names of all the places"
@@ -179,8 +217,7 @@ userInterface placeData = do
   putStrLn "4. - Return a list of the names of places that were totally dry (i.e. had zero rainfall) a given number of days ago"
   putStrLn "5. - Update the data given a list of most recent rainfall figures (one value for each place), removing the oldest rainfall figure for each place"
   putStrLn "6. - Replace a given existing place with a new place"
-  putStrLn "7. - Remove the 50th album and replace it"
-  putStrLn "8. - Increasing the sales figures of a given album"
+  putStrLn "8. - Open Map"
   putStrLn "9. - Exit Program"
   putStrLn ""
   putStrLn (rS "*" 20)
@@ -191,14 +228,12 @@ userInterface placeData = do
   if input `elem` map (show) [1..9]
     then case input of
       "1" -> putStrLn (getAllPlaceNames testData)
-      "2" -> printf "%v" (getAverageRainfallForPlace testData "Cardiff")
+      "2" -> printf "%.2f" (getAverageRainfallForPlace testData "Cardiff")
       "3" -> putStr (intercalate "\n" (map stringListIntegerToString (getAllPlacesAndRainFall testData)))
       "4" -> putStrLn (getAllPlaceNames (findPlacesDry2DaysAgo testData))
       "5" -> putStrLn (placesToString (updateAllPlaceRain testData [0,8,0,0,5,0,0,3,4,2,0,8,0,0]))
       "6" -> putStrLn (placesToString (removePlace (addPlace testData "Portsmouth" 50.8 (-1.1) [0,0,3,2,5,2,1]) "Plymouth"))
-    --   "6" -> putStrLn (occuranceToString(occurance_counter (albumReduction(placeData)) 50))
-    --   "7" -> putStrLn (placesToString (updateLastEntry placeData (Album "Progress" "Take That" 2010 2700000)))
-    --   "8" -> putStrLn (placesToString (updateCertainEntry placeData "21"))
+      "7" -> print (minimumOfDataList testData (50.9, -1.3))
       "9" -> return()
   else
     userInterface placeData
@@ -206,7 +241,5 @@ userInterface placeData = do
 
 main :: IO ()
 main = do
-    -- putStrLn (splitOn "," (lines contents))
     ls <- fmap lines (readFile "places.txt")
-    print ls
     userInterface (map convert ls)
