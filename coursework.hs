@@ -91,16 +91,20 @@ getAllPlacesAndRainFall places = [(placeName, dailyFigures) | (Place placeName _
 stringListIntegerToString :: (String, [Integer]) -> String
 stringListIntegerToString (placeName, dailyFigures) = placeName ++ (rS " " (20-(length placeName)))++ intercalate ",   " (listIntToListString dailyFigures)
 
+-- Demo 4
+
+findPlacesDry2DaysAgo :: [Place] -> [Place]
+findPlacesDry2DaysAgo places = (filter (\(Place placeName _ _ dailyFigures) -> dailyFigures !! 1 == 0) places)
+
 --
 --  Demo
 --
 
 demo :: Int -> IO ()
--- demo 1 = putStrLn (placesToString testData)
 demo 1 = putStrLn (getAllPlaceNames testData)
-demo 2 = printf "%f" (getAverageRainfallForPlace testData "London")
+demo 2 = printf "%f" (getAverageRainfallForPlace testData "Cardiff")
 demo 3 = putStr (intercalate "\n" (map stringListIntegerToString (getAllPlacesAndRainFall testData)))
--- demo 4 = -- display the names of all places that were dry two days ago
+demo 4 = print (getAllPlaceNames (findPlacesDry2DaysAgo testData))
 -- demo 5 = -- update the data with most recent rainfall 
 --          [0,8,0,0,5,0,0,3,4,2,0,8,0,0] (and remove oldest rainfall figures)
 -- demo 6 = -- replace "Plymouth" with "Portsmouth" which has 
@@ -169,9 +173,9 @@ userInterface placeData = do
   if input `elem` map (show) [1..9]
     then case input of
       "1" -> putStrLn (getAllPlaceNames testData)
-      "2" -> printf "%v" (getAverageRainfallForPlace testData "London")
+      "2" -> printf "%v" (getAverageRainfallForPlace testData "Cardiff")
       "3" -> putStr (intercalate "\n" (map stringListIntegerToString (getAllPlacesAndRainFall testData)))
-    --   "4" -> putStrLn (placesToString (albumStartsWithFilter "Th" placeData))
+      "4" -> putStrLn (getAllPlaceNames (findPlacesDry2DaysAgo testData))
     --   "5" -> putStrLn (show (sum(totalSales "Queen" placeData)))
     --   "6" -> putStrLn (occuranceToString(occurance_counter (albumReduction(placeData)) 50))
     --   "7" -> putStrLn (placesToString (updateLastEntry placeData (Album "Progress" "Take That" 2010 2700000)))
