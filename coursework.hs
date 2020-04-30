@@ -14,6 +14,11 @@ import Data.List (intercalate, genericLength)
 -- Types (define Place type here)
 --
 
+type PlaceName = String
+type DegreesN = Float
+type DegreesE = Float
+type DailyFigures = [Integer]
+
 data Place = Place {
     placeName :: String,
     degreesN :: Float,
@@ -103,18 +108,25 @@ updatePlaceRain (place, newRain) = place {dailyFigures = init (newRain : (getRai
 updateAllPlaceRain :: [Place] -> [Integer] -> [Place]
 updateAllPlaceRain places newRainData = map updatePlaceRain (zip places newRainData)
 
+-- Demo 6
+
+addPlace :: [Place] -> PlaceName -> DegreesN -> DegreesE -> DailyFigures -> [Place]
+addPlace places placeName degreesN degreesE dailyFigures = places ++ [Place placeName degreesN degreesE dailyFigures]
+
+removePlace :: [Place] -> String -> [Place]
+removePlace places searchName = (filter (\(Place placeName _ _ _) -> placeName /= searchName) places)
+
 --
 --  Demo
 --
 
 demo :: Int -> IO ()
 demo 1 = putStrLn (getAllPlaceNames testData)
-demo 2 = printf "%f" (getAverageRainfallForPlace testData "Cardiff")
-demo 3 = putStr (intercalate "\n" (map stringListIntegerToString (getAllPlacesAndRainFall testData)))
-demo 4 = print (getAllPlaceNames (findPlacesDry2DaysAgo testData))
+demo 2 = printf "%f\n" (getAverageRainfallForPlace testData "Cardiff")
+demo 3 = putStr ((intercalate "\n" (map stringListIntegerToString (getAllPlacesAndRainFall testData))) ++ "\n")
+demo 4 = putStrLn (getAllPlaceNames (findPlacesDry2DaysAgo testData))
 demo 5 = putStrLn (placesToString (updateAllPlaceRain testData [0,8,0,0,5,0,0,3,4,2,0,8,0,0]))
--- demo 6 = -- replace "Plymouth" with "Portsmouth" which has 
---          location 50.8 (N), -1.1 (E) and rainfall 0, 0, 3, 2, 5, 2, 1
+demo 6 = putStrLn (placesToString (removePlace (addPlace testData "Portsmouth" 50.8 (-1.1) [0,0,3,2,5,2,1]) "Plymouth"))
 -- demo 7 = -- display the name of the place closest to 50.9 (N), -1.3 (E) 
 --          that was dry yesterday
 -- demo 8 = -- display the rainfall map
@@ -164,9 +176,9 @@ userInterface placeData = do
   putStrLn "1. - Return a list of the names of all the places"
   putStrLn "2. - Return the average rainfall (as a float) for a place given its name"
   putStrLn "3. - Return all place names and their 7-day rainfall figures as a single string which, when output using putStr, will display the data formatted neatly into eight columns"
-  putStrLn "4. - Give all Albums that start with a given prefix"
-  putStrLn "5. - Give the total sales of a given artist"
-  putStrLn "6. - Give a list of artist names to number of albums in top 50"
+  putStrLn "4. - Return a list of the names of places that were totally dry (i.e. had zero rainfall) a given number of days ago"
+  putStrLn "5. - Update the data given a list of most recent rainfall figures (one value for each place), removing the oldest rainfall figure for each place"
+  putStrLn "6. - Replace a given existing place with a new place"
   putStrLn "7. - Remove the 50th album and replace it"
   putStrLn "8. - Increasing the sales figures of a given album"
   putStrLn "9. - Exit Program"
@@ -183,6 +195,7 @@ userInterface placeData = do
       "3" -> putStr (intercalate "\n" (map stringListIntegerToString (getAllPlacesAndRainFall testData)))
       "4" -> putStrLn (getAllPlaceNames (findPlacesDry2DaysAgo testData))
       "5" -> putStrLn (placesToString (updateAllPlaceRain testData [0,8,0,0,5,0,0,3,4,2,0,8,0,0]))
+      "6" -> putStrLn (placesToString (removePlace (addPlace testData "Portsmouth" 50.8 (-1.1) [0,0,3,2,5,2,1]) "Plymouth"))
     --   "6" -> putStrLn (occuranceToString(occurance_counter (albumReduction(placeData)) 50))
     --   "7" -> putStrLn (placesToString (updateLastEntry placeData (Album "Progress" "Take That" 2010 2700000)))
     --   "8" -> putStrLn (placesToString (updateCertainEntry placeData "21"))
