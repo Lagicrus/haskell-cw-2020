@@ -412,6 +412,24 @@ uiCreatePlace places = do
     let updatedPlaces = addPlace places title (read coordN :: Float) (read coordE ::Float) (read weatherData :: [Integer])
     userInterface updatedPlaces
 
+uiFindClosestPlace :: [Place] -> IO ()
+uiFindClosestPlace places = do
+    putStrLn (rS "*" 15)
+    putStrLn "Please enter the coords to check (0.0, 0.0)"
+    coords <- getLine
+    putStrLn ""
+
+    if Data.Maybe.isNothing (readMaybe coords :: Maybe (Float, Float))
+        then do
+            putStrLn "Coords needs to be in the format of (0.0, 0.0)"
+            uiFindClosestPlace places
+        else
+            putStr ""
+
+    putStrLn (placeFloatToString (minimumDistanceFinder (distanceAndPlaceGen places (read coords :: (Float, Float)))))
+
+    userInterface places
+
 -- Take a place and spit out a string version of it which is compatible with the file
 placeToStringFile :: Place -> String
 placeToStringFile (Place placeName degreesN degreesE dailyFigures) = 
@@ -467,9 +485,7 @@ userInterface placeData = do
           ; userInterface placeData
       "5" -> uiUpdateData placeData
       "6" -> uiCreateAndDestroyPlace placeData
-      "7" -> do 
-          putStrLn (placeFloatToString (minimumDistanceFinder (distanceAndPlaceGen placeData (50.9, -1.3))))
-          ; userInterface placeData
+      "7" -> uiFindClosestPlace placeData
       "9" -> saveUI placeData
       _ -> userInterface placeData
   else
