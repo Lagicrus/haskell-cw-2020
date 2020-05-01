@@ -11,6 +11,7 @@ import Data.Text (pack, splitOn, unpack)
 import Data.List (intercalate, genericLength)
 import Data.Map (Map, keys, fromList, lookup)
 import Data.Maybe
+import Text.Read (readMaybe)
 
 --
 -- Types (define Place type here)
@@ -75,7 +76,7 @@ listIntToListString listI = map show listI
 
 -- join a list of all place names together by using intercalate to join the list on space
 getAllPlaceNames :: [Place] -> String
-getAllPlaceNames placeList = intercalate " " [placeName | (Place placeName _ _ _) <- placeList]
+getAllPlaceNames placeList = intercalate ", " [placeName | (Place placeName _ _ _) <- placeList]
 
 -- Demo 2
 
@@ -109,8 +110,8 @@ stringListIntegerToString (placeName, dailyFigures) = placeName ++
 -- Demo 4
 
 -- Given a list of Place filter out all Place's that were dry on their second day
-findPlacesDry2DaysAgo :: [Place] -> [Place]
-findPlacesDry2DaysAgo places = (filter (\(Place placeName _ _ dailyFigures) -> dailyFigures !! 1 == 0) places)
+findPlacesDry2DaysAgo :: [Place] -> Int -> [Place]
+findPlacesDry2DaysAgo places daysAgo = (filter (\(Place placeName _ _ dailyFigures) -> dailyFigures !! (daysAgo - 1) == 0) places)
 
 -- Demo 5
 
@@ -190,7 +191,7 @@ demo 2 = printf "%.2f\n" (getAverageRainfallForPlace testData "Cardiff")
 -- Demo 3, pretty print a table of place name to weather data via intercalate
 demo 3 = putStr ((intercalate "\n" (map stringListIntegerToString (getAllPlacesAndRainFall testData))) ++ "\n")
 -- Demo 4, get all places that were dry 2 days ago and print it
-demo 4 = putStrLn (getAllPlaceNames (findPlacesDry2DaysAgo testData))
+demo 4 = putStrLn (getAllPlaceNames (findPlacesDry2DaysAgo testData 2))
 -- Demo 5, Update weather data with given set of ints
 demo 5 = putStrLn (placesToString (updateAllPlaceRain testData [0,8,0,0,5,0,0,3,4,2,0,8,0,0]))
 -- Demo 6, Add Portsmouth to place list and then remove Plymouth
@@ -273,6 +274,39 @@ searchAverageRainfallOfPlace places =
         putStrLn (rS "*" 15)
         userInterface places
 
+uiFindPlacesDry :: [Place] -> IO ()
+uiFindPlacesDry places =
+    do
+        putStrLn (rS "*" 15)
+        putStrLn "Please enter a number between 1 and 7 (inclusive)"
+        searchTerm <- getLine
+        putStrLn("\n")
+
+        if searchTerm == ""
+            then do
+                putStrLn (sendUserError "String")
+                uiFindPlacesDry places
+            else
+                putStr ""
+
+        if Data.Maybe.isNothing (readMaybe searchTerm :: Maybe Int)
+            then do
+                putStrLn (sendUserError "int")
+                uiFindPlacesDry places
+            else
+                putStr ""
+
+        let numDay = fromJust (readMaybe searchTerm :: Maybe Int)
+        if show numDay `elem` map (show) [1..7]
+            then do
+                putStrLn ((getAllPlaceNames (findPlacesDry2DaysAgo testData numDay)) ++ ", were all dry " ++ show numDay ++ " day(s) ago")
+            else
+                putStrLn ("Error, " ++ show numDay ++ " not in range of 1-7")
+        
+        putStrLn (rS "*" 15)
+        userInterface places
+
+
 userInterface :: [Place] -> IO ()
 userInterface placeData = do
   putStrLn (rS "*" 15)
@@ -299,13 +333,23 @@ userInterface placeData = do
           putStrLn (getAllPlaceNames placeData)
           ; userInterface placeData
       "2" -> do
-          printf "%.2f" (getAverageRainfallForPlace placeData "Cardiff")
-    --   "3" -> putStr (intercalate "\n" (map stringListIntegerToString (getAllPlacesAndRainFall placeData)))
-      "3" -> searchAverageRainfallOfPlace placeData
-      "4" -> putStrLn (getAllPlaceNames (findPlacesDry2DaysAgo placeData))
-      "5" -> putStrLn (placesToString (updateAllPlaceRain placeData [0,8,0,0,5,0,0,3,4,2,0,8,0,0]))
-      "6" -> putStrLn (placesToString (removePlace (addPlace placeData "Portsmouth" 50.8 (-1.1) [0,0,3,2,5,2,1]) "Plymouth"))
-      "7" -> putStrLn (placeFloatToString (minimumDistanceFinder (distanceAndPlaceGen placeData (50.9, -1.3))))
+          searchAverageRainfallOfPlace placeData
+          ; userInterface placeData
+      "3" -> do
+          putStr ((intercalate "\n" (map stringListIntegerToString (getAllPlacesAndRainFall placeData))) ++ "\n")
+          ; userInterface placeData
+      "4" -> do
+          uiFindPlacesDry placeData
+          ; userInterface placeData
+      "5" -> do
+          putStrLn (placesToString (updateAllPlaceRain placeData [0,8,0,0,5,0,0,3,4,2,0,8,0,0]))
+          ; userInterface placeData
+      "6" -> do
+          putStrLn (placesToString (removePlace (addPlace placeData "Portsmouth" 50.8 (-1.1) [0,0,3,2,5,2,1]) "Plymouth"))
+          ; userInterface placeData
+      "7" -> do 
+          putStrLn (placeFloatToString (minimumDistanceFinder (distanceAndPlaceGen placeData (50.9, -1.3))))
+          ; userInterface placeData
       "9" -> return()
       _ -> userInterface placeData
   else
