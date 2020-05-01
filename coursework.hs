@@ -240,6 +240,7 @@ sendUserError "int" = "\nError: You did not enter a valid Number\nPlease try aga
 sendUserError "string" = "\nError: You did not enter a valid String\nPlease try again.\n"
 sendUserError "input" = "\nError: You did not enter any value\nPlease try again.\n"
 sendUserError "option" = "\nError: You did not enter a valid option\nPlease try again.\n"
+sendUserError "list" = "\nError: You did not enter a valid integer list\nPlease try again.\n"
 
 -- Test if the place name is the same as the string
 testFunction :: (Place, String) -> Bool
@@ -310,12 +311,90 @@ uiFindPlacesDry places =
         putStrLn (rS "*" 15)
         userInterface places
 
+-- UI Destory a place
+-- Passes down to a create place function
+uiCreateAndDestroyPlace :: [Place] -> IO ()
+uiCreateAndDestroyPlace places = do
+    putStrLn (rS "*" 15)
+    putStrLn "Valid Places"
+    putStrLn (getAllPlaceNames places)
+    putStrLn "Please enter the name of the place you wish to delete:"
+    placeToRemove <- getLine
+    putStrLn("\n")
+
+    if doesPlaceNameExist places placeToRemove
+        then do
+            let updatedPlaces = removePlace places placeToRemove
+            putStrLn ("Deleted: " ++ placeToRemove)
+            uiCreatePlace updatedPlaces
+        else
+            putStrLn ("The place '" ++ placeToRemove ++ "' does not exist")
+
+uiCreatePlace :: [Place] -> IO ()
+uiCreatePlace places = do
+    putStrLn (rS "*" 15)
+    putStrLn "Please enter the new data for a Place"
+    putStrLn "Please enter a title:"
+    title <- getLine
+    putStrLn ""
+    putStrLn "Please enter a N Coord:"
+    coordN <- getLine
+    putStrLn ""
+    putStrLn "Please enter a E Coord:"
+    coordE <- getLine
+    putStrLn ""
+    putStrLn "Please enter the weather data:"
+    weatherData <- getLine
+    putStrLn ""
+
+    if title == "" || coordN == "" || coordE == "" || weatherData == ""
+        then do
+            putStrLn (sendUserError "String")
+            userInterface places
+        else do
+            putStrLn "Valid Data"
+    
+    if Data.Maybe.isNothing (readMaybe coordN :: Maybe Float)
+        then do
+            putStrLn "CoorN needs to be a valid float"
+            uiCreatePlace places
+        else
+            putStr ""
+    
+    if Data.Maybe.isNothing (readMaybe coordE :: Maybe Float)
+        then do
+            putStrLn "CoordE needs to be a valid float"
+            uiCreatePlace places
+        else
+            putStr ""
+    
+    if Data.Maybe.isNothing (readMaybe weatherData :: Maybe [Integer])
+        then do
+            putStrLn (sendUserError "list")
+            uiCreatePlace places
+        else
+            putStr ""
+    
+    putStrLn (show(length (read weatherData :: [Integer])))
+
+    if length (read weatherData :: [Integer]) /= 7
+        then do
+            putStrLn "A list of 7 is required for weather data"
+            uiCreatePlace places
+        else
+            putStr ""
+
+    let updatedPlaces = addPlace places title (read coordN :: Float) (read coordE ::Float) (read weatherData :: [Integer])
+    userInterface updatedPlaces
+
+
+
 -- Main UI interface handler
 userInterface :: [Place] -> IO ()
 userInterface placeData = do
   putStrLn (rS "*" 15)
   putStrLn "Place Data by UP857256"
-  putStrLn (getAllPlaceNames testData)
+  putStrLn (getAllPlaceNames placeData)
   putStrLn (rS "*" 15)
   putStrLn "\nPlease enter the number of the item you want to access.\n"
   putStrLn "1. - Return a list of the names of all the places"
@@ -349,7 +428,7 @@ userInterface placeData = do
           putStrLn (placesToString (updateAllPlaceRain placeData [0,8,0,0,5,0,0,3,4,2,0,8,0,0]))
           ; userInterface placeData
       "6" -> do
-          putStrLn (placesToString (removePlace (addPlace placeData "Portsmouth" 50.8 (-1.1) [0,0,3,2,5,2,1]) "Plymouth"))
+          uiCreateAndDestroyPlace placeData
           ; userInterface placeData
       "7" -> do 
           putStrLn (placeFloatToString (minimumDistanceFinder (distanceAndPlaceGen placeData (50.9, -1.3))))
