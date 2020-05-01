@@ -387,7 +387,19 @@ uiCreatePlace places = do
     let updatedPlaces = addPlace places title (read coordN :: Float) (read coordE ::Float) (read weatherData :: [Integer])
     userInterface updatedPlaces
 
+placeToStringFile :: Place -> String
+placeToStringFile (Place placeName degreesN degreesE dailyFigures) = 
+    placeName ++ " " ++ 
+    show degreesN ++ " " ++ 
+    show degreesE ++ " " ++
+    show dailyFigures
 
+placesToSaveFile :: [Place] -> String
+placesToSaveFile places = intercalate "\n" (map placeToStringFile places)
+
+saveUI :: [Place] -> IO ()
+saveUI places = do
+    writeFile "places.txt" (placesToSaveFile places)
 
 -- Main UI interface handler
 userInterface :: [Place] -> IO ()
@@ -427,13 +439,11 @@ userInterface placeData = do
       "5" -> do
           putStrLn (placesToString (updateAllPlaceRain placeData [0,8,0,0,5,0,0,3,4,2,0,8,0,0]))
           ; userInterface placeData
-      "6" -> do
-          uiCreateAndDestroyPlace placeData
-          ; userInterface placeData
+      "6" -> uiCreateAndDestroyPlace placeData
       "7" -> do 
           putStrLn (placeFloatToString (minimumDistanceFinder (distanceAndPlaceGen placeData (50.9, -1.3))))
           ; userInterface placeData
-      "9" -> return()
+      "9" -> saveUI placeData
       _ -> userInterface placeData
   else
     userInterface placeData
