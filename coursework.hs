@@ -9,6 +9,8 @@ import Text.Printf
 import Data.Map (fromListWith, toList)
 import Data.Text (pack, splitOn, unpack)
 import Data.List (intercalate, genericLength)
+import Data.Map (Map, keys, fromList, lookup)
+import Data.Maybe
 
 --
 -- Types (define Place type here)
@@ -140,15 +142,22 @@ removePlace places searchName = (filter (\(Place placeName _ _ _) -> placeName /
 getPlaceXY :: Place -> (Float, Float)
 getPlaceXY (Place placeName degreesN degreesE dailyFigures) = (degreesN, degreesE)
 
+-- Create Place
+createPlace :: PlaceName -> DegreesN -> DegreesE -> DailyFigures -> Place
+createPlace placeName degreesN degreesE dailyFigures = Place placeName degreesN degreesE dailyFigures
+
 -- Pythag on two co-ord pairs to find Float distance
 distanceBetween2Points :: (Float, Float) -> (Float, Float) -> Float
 distanceBetween2Points (aX, aY) (bX, bY) = sqrt ((aX - bX) ^ 2 + (aY - bY) ^ 2)
 
-minimumOfDataList :: [Place] -> (Float, Float) -> Float
-minimumOfDataList places (coX, coY) = do
-    let x = 0
-    ; let closest = distanceBetween2Points (getPlaceXY (places !! x)) (coX, coY)
-    ; closest
+placeToPlaceCoordPair :: (Place, (Float, Float)) -> (Float, Place)
+placeToPlaceCoordPair ((Place placeName degreesN degreesE dailyFigures), (bX, bY)) = ((distanceBetween2Points (degreesN, degreesE) (bX, bY)), (createPlace placeName degreesN degreesE dailyFigures))
+
+distanceAndPlaceGen :: [Place] -> (Float, Float) -> [(Float, Place)]
+distanceAndPlaceGen places (coX, coY) = map placeToPlaceCoordPair (zip places (replicate (length places) (coX, coY)))
+
+minimumDistanceFinder :: [(Float, Place)] -> (Place, Float)
+minimumDistanceFinder distancePlacePair = (Data.Maybe.fromJust (Data.Map.lookup (minimum (keys (fromList distancePlacePair))) (fromList distancePlacePair)), minimum (keys (fromList distancePlacePair)))
 
 --
 --  Demo
@@ -233,7 +242,7 @@ userInterface placeData = do
       "4" -> putStrLn (getAllPlaceNames (findPlacesDry2DaysAgo placeData))
       "5" -> putStrLn (placesToString (updateAllPlaceRain placeData [0,8,0,0,5,0,0,3,4,2,0,8,0,0]))
       "6" -> putStrLn (placesToString (removePlace (addPlace placeData "Portsmouth" 50.8 (-1.1) [0,0,3,2,5,2,1]) "Plymouth"))
-      "7" -> print (minimumOfDataList placeData (50.9, -1.3))
+      "7" -> print (minimumDistanceFinder (distanceAndPlaceGen placeData (50.9, -1.3)))
       "9" -> return()
   else
     userInterface placeData
