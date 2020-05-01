@@ -330,6 +330,30 @@ uiCreateAndDestroyPlace places = do
         else
             putStrLn ("The place '" ++ placeToRemove ++ "' does not exist")
 
+uiUpdateData :: [Place] -> IO ()
+uiUpdateData places = do
+    putStrLn (rS "*" 15)
+    putStrLn ("Please enter the new data weather data for " ++ show (length places) ++ " places as a list [a,b,c]")
+    newWeatherData <- getLine
+    putStrLn ""
+
+    if Data.Maybe.isNothing (readMaybe newWeatherData :: Maybe [Integer])
+        then do
+            putStrLn (sendUserError "list")
+            uiUpdateData places
+        else
+            putStr ""
+    
+    if length (read newWeatherData :: [Integer]) /= (length places)
+        then do
+            putStrLn ("A list of " ++ show (length places) ++ " is required for weather data")
+            uiUpdateData places
+        else
+            putStr ""
+    
+    let updatePlaces = updateAllPlaceRain places (read newWeatherData :: [Integer])
+    userInterface updatePlaces
+
 -- UI create a place
 uiCreatePlace :: [Place] -> IO ()
 uiCreatePlace places = do
@@ -344,7 +368,7 @@ uiCreatePlace places = do
     putStrLn "Please enter a E Coord:"
     coordE <- getLine
     putStrLn ""
-    putStrLn "Please enter the weather data [x,x,x,x,x,x,x]:"
+    putStrLn "Please enter the weather data [a,b,c,d,x,y,z]:"
     weatherData <- getLine
     putStrLn ""
 
@@ -441,9 +465,7 @@ userInterface placeData = do
       "4" -> do
           uiFindPlacesDry placeData
           ; userInterface placeData
-      "5" -> do
-          putStrLn (placesToString (updateAllPlaceRain placeData [0,8,0,0,5,0,0,3,4,2,0,8,0,0]))
-          ; userInterface placeData
+      "5" -> uiUpdateData placeData
       "6" -> uiCreateAndDestroyPlace placeData
       "7" -> do 
           putStrLn (placeFloatToString (minimumDistanceFinder (distanceAndPlaceGen placeData (50.9, -1.3))))
