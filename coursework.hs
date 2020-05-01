@@ -102,7 +102,9 @@ getAllPlacesAndRainFall places = [(placeName, dailyFigures) | (Place placeName _
 
 -- take in a grouped search term and weather data and return a joined list with dynamic spacing
 stringListIntegerToString :: (String, [Integer]) -> String
-stringListIntegerToString (placeName, dailyFigures) = placeName ++ (rS " " (20-(length placeName)))++ intercalate ",   " (listIntToListString dailyFigures)
+stringListIntegerToString (placeName, dailyFigures) = placeName ++ 
+    (rS " " (20-(length placeName)))
+    ++ intercalate ",   " (listIntToListString dailyFigures)
 
 -- Demo 4
 
@@ -237,7 +239,7 @@ userInterface placeData = do
   putStrLn "Place Data by UP857256"
   putStrLn (getAllPlaceNames testData)
   putStrLn (rS "*" 15)
-  putStrLn ""
+  putStrLn "\nPlease enter the number of the item you want to access.\n"
   putStrLn "1. - Return a list of the names of all the places"
   putStrLn "2. - Return the average rainfall (as a float) for a place given its name"
   putStrLn "3. - Return all place names and their 7-day rainfall figures as a single string which, when output using putStr, will display the data formatted neatly into eight columns"
@@ -245,14 +247,12 @@ userInterface placeData = do
   putStrLn "5. - Update the data given a list of most recent rainfall figures (one value for each place), removing the oldest rainfall figure for each place"
   putStrLn "6. - Replace a given existing place with a new place"
   putStrLn "7. - Given a location return the closest place that was totally dry yesterday"
-  putStrLn "8. - Open Map"
-  putStrLn "9. - Exit Program"
-  putStrLn ""
+  putStrLn "9. - Exit Program\n"
   putStrLn (rS "*" 20)
 
-  putStr ("> ")
+  putStrLn "Please enter your input:"
   input <- getLine
-  putStr "\n"
+  putStrLn ""
   if input `elem` map (show) [1..9]
     then case input of
       "1" -> putStrLn (getAllPlaceNames placeData)
@@ -263,6 +263,7 @@ userInterface placeData = do
       "6" -> putStrLn (placesToString (removePlace (addPlace placeData "Portsmouth" 50.8 (-1.1) [0,0,3,2,5,2,1]) "Plymouth"))
       "7" -> putStrLn (placeFloatToString (minimumDistanceFinder (distanceAndPlaceGen placeData (50.9, -1.3))))
       "9" -> return()
+      _ -> userInterface placeData
   else
     userInterface placeData
 
