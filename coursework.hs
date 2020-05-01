@@ -241,12 +241,15 @@ sendUserError "string" = "\nError: You did not enter a valid String\nPlease try 
 sendUserError "input" = "\nError: You did not enter any value\nPlease try again.\n"
 sendUserError "option" = "\nError: You did not enter a valid option\nPlease try again.\n"
 
+-- Test if the place name is the same as the string
 testFunction :: (Place, String) -> Bool
 testFunction ((Place placeName degreesN degreesE dailyFigures), searchTerm) = placeName == searchTerm
 
+-- Test if the place name exist by using any
 doesPlaceNameExist :: [Place] -> String -> Bool
 doesPlaceNameExist places searchTerm = any testFunction (zip places (replicate (length places) searchTerm))
 
+-- UI interface to ask the user for what place they want to check
 searchAverageRainfallOfPlace :: [Place] -> IO()
 searchAverageRainfallOfPlace places =
     do
@@ -274,6 +277,7 @@ searchAverageRainfallOfPlace places =
         putStrLn (rS "*" 15)
         userInterface places
 
+-- UI interface to ask the user how many days ago they are checking to see that it is dry
 uiFindPlacesDry :: [Place] -> IO ()
 uiFindPlacesDry places =
     do
@@ -306,7 +310,7 @@ uiFindPlacesDry places =
         putStrLn (rS "*" 15)
         userInterface places
 
-
+-- Main UI interface handler
 userInterface :: [Place] -> IO ()
 userInterface placeData = do
   putStrLn (rS "*" 15)
@@ -355,7 +359,7 @@ userInterface placeData = do
   else
     userInterface placeData
 
-
+-- Main Function
 main :: IO ()
 main = do
     ls <- fmap lines (readFile "places.txt")
