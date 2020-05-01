@@ -150,17 +150,31 @@ createPlace placeName degreesN degreesE dailyFigures = Place placeName degreesN 
 distanceBetween2Points :: (Float, Float) -> (Float, Float) -> Float
 distanceBetween2Points (aX, aY) (bX, bY) = sqrt ((aX - bX) ^ 2 + (aY - bY) ^ 2)
 
+-- Take in a grouped Place with a destination co-ord pair to check against
+-- Return the distance with a Place
 placeToPlaceCoordPair :: (Place, (Float, Float)) -> (Float, Place)
 placeToPlaceCoordPair ((Place placeName degreesN degreesE dailyFigures), (bX, bY)) = ((distanceBetween2Points (degreesN, degreesE) (bX, bY)), (createPlace placeName degreesN degreesE dailyFigures))
 
+-- Take in a list of places and destination co-ord pair to check against
+-- Run map over function to generate list of grouped distance to place
+-- Use Zip so map can take in 2 sets of data in 1 value
+-- Use replicate to create a list of co-ord pairs equal to length of places so Zip can work
 distanceAndPlaceGen :: [Place] -> (Float, Float) -> [(Float, Place)]
 distanceAndPlaceGen places (coX, coY) = map placeToPlaceCoordPair (zip places (replicate (length places) (coX, coY)))
 
+-- From a given list of grouped distance and Place
+-- Return the closest place with distance to it
+-- Use Data.Map.fromList to create a data map on the paired data
+-- Then use keys to extract a List of floats
+-- Run minimum over said List of floats to find the smallest aka closest distance
+-- Run Data.Map.lookup using the minimum value with the original list to find the value of the minimum key
+-- Return a grouped Place and distance
 minimumDistanceFinder :: [(Float, Place)] -> (Place, Float)
 minimumDistanceFinder distancePlacePair = (Data.Maybe.fromJust (Data.Map.lookup (minimum (keys (fromList distancePlacePair))) (fromList distancePlacePair)), minimum (keys (fromList distancePlacePair)))
 
+-- Convert a grouped Place and distance pair to a readable string
 placeFloatToString :: (Place, Float) -> String
-placeFloatToString ((Place placeName degreesN degreesE dailyFigures), distance) = "The closest place is " ++ placeName ++ ", with a distane of " ++ printf "%.2f" distance
+placeFloatToString ((Place placeName degreesN degreesE dailyFigures), distance) = "The closest place is " ++ placeName ++ ", with a distane of " ++ show distance
 
 --
 --  Demo
