@@ -233,6 +233,46 @@ writeAt position text = do
 -- Your user interface (and loading/saving) code goes here
 --
 
+-- Returns an error message for incorrect input
+sendUserError :: String -> String
+sendUserError "int" = "\nError: You did not enter a valid Number\nPlease try again.\n"
+sendUserError "string" = "\nError: You did not enter a valid String\nPlease try again.\n"
+sendUserError "input" = "\nError: You did not enter any value\nPlease try again.\n"
+sendUserError "option" = "\nError: You did not enter a valid option\nPlease try again.\n"
+
+testFunction :: (Place, String) -> Bool
+testFunction ((Place placeName degreesN degreesE dailyFigures), searchTerm) = placeName == searchTerm
+
+doesPlaceNameExist :: [Place] -> String -> Bool
+doesPlaceNameExist places searchTerm = any testFunction (zip places (replicate (length places) searchTerm))
+
+searchAverageRainfallOfPlace :: [Place] -> IO()
+searchAverageRainfallOfPlace places =
+    do
+        putStrLn (rS "*" 15)
+        putStrLn "Valid Places"
+        putStrLn (getAllPlaceNames places)
+        putStrLn (rS "*" 15)
+        putStrLn "Please enter the your search phrase:"
+        searchTerm <- getLine
+        putStrLn("\n")
+
+        if searchTerm == ""
+            then do
+                putStrLn (sendUserError "String")
+                searchAverageRainfallOfPlace places
+            else
+                putStr ""
+
+        if doesPlaceNameExist places searchTerm
+            then do
+                printf "%.2f\n" (getAverageRainfallForPlace places searchTerm)
+            else do
+                putStrLn ("There were no places that contain the term '" ++ searchTerm ++ "'")
+
+        putStrLn (rS "*" 15)
+        userInterface places
+
 userInterface :: [Place] -> IO ()
 userInterface placeData = do
   putStrLn (rS "*" 15)
@@ -250,14 +290,18 @@ userInterface placeData = do
   putStrLn "9. - Exit Program\n"
   putStrLn (rS "*" 20)
 
-  putStrLn "Please enter your input:"
+  putStrLn "Please enter your choice:"
   input <- getLine
   putStrLn ""
   if input `elem` map (show) [1..9]
     then case input of
-      "1" -> putStrLn (getAllPlaceNames placeData)
-      "2" -> printf "%.2f" (getAverageRainfallForPlace placeData "Cardiff")
-      "3" -> putStr (intercalate "\n" (map stringListIntegerToString (getAllPlacesAndRainFall placeData)))
+      "1" -> do
+          putStrLn (getAllPlaceNames placeData)
+          ; userInterface placeData
+      "2" -> do
+          printf "%.2f" (getAverageRainfallForPlace placeData "Cardiff")
+    --   "3" -> putStr (intercalate "\n" (map stringListIntegerToString (getAllPlacesAndRainFall placeData)))
+      "3" -> searchAverageRainfallOfPlace placeData
       "4" -> putStrLn (getAllPlaceNames (findPlacesDry2DaysAgo placeData))
       "5" -> putStrLn (placesToString (updateAllPlaceRain placeData [0,8,0,0,5,0,0,3,4,2,0,8,0,0]))
       "6" -> putStrLn (placesToString (removePlace (addPlace placeData "Portsmouth" 50.8 (-1.1) [0,0,3,2,5,2,1]) "Plymouth"))
