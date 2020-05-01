@@ -227,13 +227,13 @@ userInterface placeData = do
   putStr "\n"
   if input `elem` map (show) [1..9]
     then case input of
-      "1" -> putStrLn (getAllPlaceNames testData)
-      "2" -> printf "%.2f" (getAverageRainfallForPlace testData "Cardiff")
-      "3" -> putStr (intercalate "\n" (map stringListIntegerToString (getAllPlacesAndRainFall testData)))
-      "4" -> putStrLn (getAllPlaceNames (findPlacesDry2DaysAgo testData))
-      "5" -> putStrLn (placesToString (updateAllPlaceRain testData [0,8,0,0,5,0,0,3,4,2,0,8,0,0]))
-      "6" -> putStrLn (placesToString (removePlace (addPlace testData "Portsmouth" 50.8 (-1.1) [0,0,3,2,5,2,1]) "Plymouth"))
-      "7" -> print (minimumOfDataList testData (50.9, -1.3))
+      "1" -> putStrLn (getAllPlaceNames placeData)
+      "2" -> printf "%.2f" (getAverageRainfallForPlace placeData "Cardiff")
+      "3" -> putStr (intercalate "\n" (map stringListIntegerToString (getAllPlacesAndRainFall placeData)))
+      "4" -> putStrLn (getAllPlaceNames (findPlacesDry2DaysAgo placeData))
+      "5" -> putStrLn (placesToString (updateAllPlaceRain placeData [0,8,0,0,5,0,0,3,4,2,0,8,0,0]))
+      "6" -> putStrLn (placesToString (removePlace (addPlace placeData "Portsmouth" 50.8 (-1.1) [0,0,3,2,5,2,1]) "Plymouth"))
+      "7" -> print (minimumOfDataList placeData (50.9, -1.3))
       "9" -> return()
   else
     userInterface placeData
