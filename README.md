@@ -1,1 +1,1 @@
-haskell-cw-2020
+# Github Repo for my Haskell Coursework for 2020
