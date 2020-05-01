@@ -330,6 +330,7 @@ uiCreateAndDestroyPlace places = do
         else
             putStrLn ("The place '" ++ placeToRemove ++ "' does not exist")
 
+-- UI create a place
 uiCreatePlace :: [Place] -> IO ()
 uiCreatePlace places = do
     putStrLn (rS "*" 15)
@@ -387,6 +388,7 @@ uiCreatePlace places = do
     let updatedPlaces = addPlace places title (read coordN :: Float) (read coordE ::Float) (read weatherData :: [Integer])
     userInterface updatedPlaces
 
+-- Take a place and spit out a string version of it which is compatible with the file
 placeToStringFile :: Place -> String
 placeToStringFile (Place placeName degreesN degreesE dailyFigures) = 
     placeName ++ " " ++ 
@@ -394,9 +396,12 @@ placeToStringFile (Place placeName degreesN degreesE dailyFigures) =
     show degreesE ++ " " ++
     show dailyFigures
 
+-- Take in a list of places and output to a string
+-- Use intercalate to join on a newline a map of places in string form
 placesToSaveFile :: [Place] -> String
 placesToSaveFile places = intercalate "\n" (map placeToStringFile places)
 
+-- Take in a list of places and write to a file
 saveUI :: [Place] -> IO ()
 saveUI places = do
     writeFile "places.txt" (placesToSaveFile places)
