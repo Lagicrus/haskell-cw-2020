@@ -159,6 +159,9 @@ distanceAndPlaceGen places (coX, coY) = map placeToPlaceCoordPair (zip places (r
 minimumDistanceFinder :: [(Float, Place)] -> (Place, Float)
 minimumDistanceFinder distancePlacePair = (Data.Maybe.fromJust (Data.Map.lookup (minimum (keys (fromList distancePlacePair))) (fromList distancePlacePair)), minimum (keys (fromList distancePlacePair)))
 
+placeFloatToString :: (Place, Float) -> String
+placeFloatToString ((Place placeName degreesN degreesE dailyFigures), distance) = "The closest place is " ++ placeName ++ ", with a distane of " ++ printf "%.2f" distance
+
 --
 --  Demo
 --
@@ -178,6 +181,7 @@ demo 5 = putStrLn (placesToString (updateAllPlaceRain testData [0,8,0,0,5,0,0,3,
 demo 6 = putStrLn (placesToString (removePlace (addPlace testData "Portsmouth" 50.8 (-1.1) [0,0,3,2,5,2,1]) "Plymouth"))
 -- demo 7 = -- display the name of the place closest to 50.9 (N), -1.3 (E) 
 --          that was dry yesterday
+demo 7 = putStrLn (placeFloatToString (minimumDistanceFinder (distanceAndPlaceGen testData (50.9, -1.3))))
 -- demo 8 = -- display the rainfall map
 
 
@@ -226,6 +230,7 @@ userInterface placeData = do
   putStrLn "4. - Return a list of the names of places that were totally dry (i.e. had zero rainfall) a given number of days ago"
   putStrLn "5. - Update the data given a list of most recent rainfall figures (one value for each place), removing the oldest rainfall figure for each place"
   putStrLn "6. - Replace a given existing place with a new place"
+  putStrLn "7. - Given a location return the closest place that was totally dry yesterday"
   putStrLn "8. - Open Map"
   putStrLn "9. - Exit Program"
   putStrLn ""
@@ -242,7 +247,7 @@ userInterface placeData = do
       "4" -> putStrLn (getAllPlaceNames (findPlacesDry2DaysAgo placeData))
       "5" -> putStrLn (placesToString (updateAllPlaceRain placeData [0,8,0,0,5,0,0,3,4,2,0,8,0,0]))
       "6" -> putStrLn (placesToString (removePlace (addPlace placeData "Portsmouth" 50.8 (-1.1) [0,0,3,2,5,2,1]) "Plymouth"))
-      "7" -> print (minimumDistanceFinder (distanceAndPlaceGen placeData (50.9, -1.3)))
+      "7" -> putStrLn (placeFloatToString (minimumDistanceFinder (distanceAndPlaceGen placeData (50.9, -1.3))))
       "9" -> return()
   else
     userInterface placeData
