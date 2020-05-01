@@ -412,6 +412,7 @@ uiCreatePlace places = do
     let updatedPlaces = addPlace places title (read coordN :: Float) (read coordE ::Float) (read weatherData :: [Integer])
     userInterface updatedPlaces
 
+-- Find the closest place from a given user input grouped float pair
 uiFindClosestPlace :: [Place] -> IO ()
 uiFindClosestPlace places = do
     putStrLn (rS "*" 15)
