@@ -1,6 +1,7 @@
 --
 -- MATHFUN
 -- UP857256
+-- Tested on Ubuntu 18.04 with GHC 8.8.3
 --
 
 import System.IO
