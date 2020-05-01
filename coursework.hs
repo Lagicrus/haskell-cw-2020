@@ -344,7 +344,7 @@ uiCreatePlace places = do
     putStrLn "Please enter a E Coord:"
     coordE <- getLine
     putStrLn ""
-    putStrLn "Please enter the weather data:"
+    putStrLn "Please enter the weather data [x,x,x,x,x,x,x]:"
     weatherData <- getLine
     putStrLn ""
 
